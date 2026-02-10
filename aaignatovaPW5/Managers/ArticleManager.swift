@@ -12,71 +12,40 @@ protocol ArticleManagerDelegate: AnyObject {
 }
 
 class ArticleManager {
-    
     // MARK: - Properties
-    private(set) var articles: [ArticleModel] = [] {
-        didSet {
-            delegate?.articlesDidUpdate()
-        }
-    }
-    
     weak var delegate: ArticleManagerDelegate?
+    private(set) var articles: [ArticleModel] = []
     
-    // MARK: - Initialization
-    init() {
-        loadSampleArticles()
+    // MARK: - Get URL
+    private func getURL(_ rubric: Int, _ pageIndex: Int) -> URL? {
+        URL(string: "https://news.myseldon.com/api/Section?rubricId=\(rubric)&pageSize=8&pageIndex=\(pageIndex)")
     }
     
-    // MARK: - Public Methods
-    func addArticle(_ article: ArticleModel) {
-        articles.insert(article, at: 0)
-    }
+    // MARK: - Parse URL
+    private let decoder: JSONDecoder = JSONDecoder()
+    private var newsPage: NewsPage = NewsPage()
     
-    func removeArticle(at index: Int) {
-        guard index >= 0 && index < articles.count else { return }
-        articles.remove(at: index)
+    // MARK: - Fetch news
+    private func fetchNews() {
+        guard let url = getURL(4, 1) else { return }
+        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+            if let error = error {
+                print(error)
+                return
+            }
+            if
+                let self,
+                let data = data,
+                var newsPage = try? decoder.decode(NewsPage.self, from: data)
+            {
+                newsPage.passTheRequestId()
+                self.newsPage = newsPage
+            }
+        }.resume()
     }
     
     func getArticle(at index: Int) -> ArticleModel? {
         guard index >= 0 && index < articles.count else { return nil }
         return articles[index]
-    }
-    
-    func clearArticles() {
-        articles.removeAll()
-    }
-    
-    // MARK: - Private Methods
-    private func loadSampleArticles() {
-        // Временные данные для тестирования
-        let sampleArticles = [
-            ArticleModel(
-                title: "Apple представила новый iPhone",
-                description: "Компания Apple провела презентацию новых моделей iPhone",
-                source: "TechCrunch"
-            ),
-            ArticleModel(
-                title: "Новые функции в iOS 18",
-                description: "Анонсированы ключевые обновления операционной системы",
-                source: "The Verge"
-            ),
-            ArticleModel(
-                title: "Рынок акций вырос",
-                description: "Основные индексы показали рост на фоне позитивных новостей",
-                source: "Bloomberg"
-            ),
-            ArticleModel(
-                title: "Изменения в налоговом законодательстве",
-                description: "Правительство внесло поправки в налоговый кодекс",
-                source: "Financial Times"
-            ),
-            ArticleModel(
-                title: "Прорыв в исследованиях ИИ",
-                description: "Ученые создали новую архитектуру нейросетей",
-                source: "MIT News"
-            )
-        ]
-        
-        articles = sampleArticles
     }
 }

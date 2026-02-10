@@ -64,7 +64,7 @@ extension NewsViewController: UITableViewDataSource {
         
         if let article = articleManager.getArticle(at: indexPath.row) {
             cell.textLabel?.text = article.title
-            cell.detailTextLabel?.text = article.description
+            cell.detailTextLabel?.text = article.announce
             cell.detailTextLabel?.numberOfLines = 2
         }
         
