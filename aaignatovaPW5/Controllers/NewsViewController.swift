@@ -92,6 +92,47 @@ extension NewsViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return UITableView.automaticDimension
     }
+    
+    private func handleShareToVK(at indexPath: IndexPath) {
+        guard let article = articleManager.getArticle(at: indexPath.row),
+              let articleUrl = article.articleUrl,
+              let articleTitle = article.title else {
+            print("Не удалось получить данные для шаринга")
+            return
+        }
+        
+        print("Поделиться в VK: \(articleTitle)")
+        
+        let shareText = "\(articleTitle)\n\(articleUrl.absoluteString)"
+        
+        let activityViewController = UIActivityViewController(
+            activityItems: [shareText],
+            applicationActivities: nil
+        )
+        
+        activityViewController.excludedActivityTypes = [
+            .addToReadingList,
+            .assignToContact,
+            .saveToCameraRoll,
+            .print
+        ]
+        
+        present(activityViewController, animated: true, completion: nil)
+    }
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let share = UIContextualAction(style: .normal,
+                                       title: "Share") { [weak self] (action, view, completionHandler) in
+            self?.handleShareToVK(at: indexPath)
+            completionHandler(true)
+        }
+        share.backgroundColor = .systemBlue
+        share.image = UIImage(systemName: "square.and.arrow.up")
+        
+        let configuration = UISwipeActionsConfiguration(actions: [share])
+        
+        return configuration
+    }
 }
 
 // MARK: - ArticleManagerDelegate
@@ -103,4 +144,3 @@ extension NewsViewController: ArticleManagerDelegate {
         }
     }
 }
-
