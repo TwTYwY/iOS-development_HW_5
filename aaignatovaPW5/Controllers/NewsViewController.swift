@@ -79,7 +79,13 @@ extension NewsViewController: UITableViewDelegate {
         
         if let article = articleManager.getArticle(at: indexPath.row) {
             print("Выбрана новость: \(article.title ?? "No title")")
-            // Здесь будет переход на детальный экран
+            let articleUrl = article.articleUrl
+            let webViewController = WebViewController()
+            webViewController.url = articleUrl
+            navigationController?.pushViewController(webViewController, animated: true)
+        } else {
+            print("Статья или URL не найдены")
+            return
         }
     }
     
