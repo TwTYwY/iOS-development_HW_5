@@ -11,7 +11,7 @@ class NewsViewController: UIViewController {
     // MARK: - Properties
     private let articleManager = ArticleManager()
     private let tableView = UITableView()
-    private let cellIdentifier = "NewsCell"
+    private let cellIdentifier = "ArticleCell"
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -40,11 +40,12 @@ class NewsViewController: UIViewController {
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellIdentifier)
+        tableView.register(ArticleCell.self, forCellReuseIdentifier: cellIdentifier)
         tableView.delegate = self
         tableView.dataSource = self
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 100
+        tableView.estimatedRowHeight = 120
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 0)
     }
     
     private func setupArticleManager() {
@@ -60,14 +61,12 @@ extension NewsViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath)
-        
-        if let article = articleManager.getArticle(at: indexPath.row) {
-            cell.textLabel?.text = article.title
-            cell.detailTextLabel?.text = article.announce
-            cell.detailTextLabel?.numberOfLines = 2
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as? ArticleCell,
+              let article = articleManager.getArticle(at: indexPath.row) else {
+            return UITableViewCell()
         }
-        
+                
+        cell.configure(with: article)
         return cell
     }
 }
@@ -79,9 +78,13 @@ extension NewsViewController: UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
         
         if let article = articleManager.getArticle(at: indexPath.row) {
-            print("Выбрана новость: \(article.title)")
+            print("Выбрана новость: \(article.title ?? "No title")")
             // Здесь будет переход на детальный экран
         }
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
     }
 }
 

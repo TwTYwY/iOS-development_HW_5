@@ -25,6 +25,11 @@ class ArticleManager {
     private let decoder: JSONDecoder = JSONDecoder()
     private var newsPage: NewsPage = NewsPage()
     
+    // MARK: - Initializer
+    init() {
+        fetchNews()
+    }
+    
     // MARK: - Fetch news
     private func fetchNews() {
         guard let url = getURL(4, 1) else { return }
@@ -33,19 +38,36 @@ class ArticleManager {
                 print(error)
                 return
             }
-            if
-                let self,
-                let data = data,
-                var newsPage = try? decoder.decode(NewsPage.self, from: data)
-            {
-                newsPage.passTheRequestId()
-                self.newsPage = newsPage
+            
+            guard let self = self else { return }
+            
+            if let data = data {
+                do {
+                    var newsPage = try self.decoder.decode(NewsPage.self, from: data)
+                    newsPage.passTheRequestId()
+                    self.newsPage = newsPage
+                    
+                    self.articles = newsPage.news ?? []
+                    
+                    print("Successfully loaded \(self.articles.count) articles")
+                    
+                    DispatchQueue.main.async {
+                        self.delegate?.articlesDidUpdate()
+                    }
+                } catch {
+                    print("Decoding error: \(error)")
+                }
             }
         }.resume()
     }
     
+    // MARK: - Public Methods
     func getArticle(at index: Int) -> ArticleModel? {
         guard index >= 0 && index < articles.count else { return nil }
         return articles[index]
+    }
+    
+    func refreshNews() {
+        fetchNews()
     }
 }
